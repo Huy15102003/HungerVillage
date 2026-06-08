@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: aa7db221b3611e548a7e235cfdca71db
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 346080
+  packageName: KCISA - Bogildo Island Seyeonjeong Pavilion
+  packageVersion: 1.0
+  assetPath: Assets/SeyeonjeongPavilion/Scene/DemoSettings.lighting
+  uploadId: 822710
