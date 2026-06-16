@@ -10,6 +10,8 @@ namespace Game
     {
         [Header("Component")]
         [SerializeField] FPController FPController;
+        public GameObject TurnBase;
+        public GameObject Canvas;
 
         #region Input Handling
 
@@ -47,6 +49,9 @@ namespace Game
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
+            FPController = GetComponent<FPController>();
+            //TurnBase = GetComponent<TurnBaseManager>().gameObject;
+            Canvas = GameObject.Find("PlayerCanvas");
         }
 
         // Update is called once per frame
