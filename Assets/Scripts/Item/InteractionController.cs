@@ -26,6 +26,7 @@ namespace Game
             {
                 interactionText.text = "";
             }
+
         }
 
         private void Update()

@@ -23,8 +23,8 @@ namespace Game
         {
             get
             {
-                //return SprintInput && CurrentSpeed > 0.1f;
-                return SprintInput && MoveInput.y > 0.1f;
+                // Require sprint input AND forward movement and some minimal speed and not paused
+                return !IsPaused && SprintInput && MoveInput.y > 0.1f && CurrentSpeed > 0.1f;
             }
         }
 
@@ -61,7 +61,7 @@ namespace Game
         public bool SprintInput;
 
         [Header("Component")]
-        [SerializeField] private CinemachineCamera Camera;
+        [SerializeField] public CinemachineCamera Camera;
         [SerializeField] private CharacterController CharacterController;
         [Header("Pause")]
         public bool IsPaused { get; set; }
@@ -76,6 +76,14 @@ namespace Game
         float cameraLocalYOffset;
         Transform lockedPositionTarget;
         bool positionLockActive;
+
+        [Header("Debug")]
+        [SerializeField] private bool ShowDebugRay = true;
+        [SerializeField] private float RaycastDistance = 5f;
+
+        bool lastSprinting = false;
+        bool lastRaycastHit = false;
+        GameObject lastRaycastHitObject = null;
 
         [Header("Footstep")]
         [SerializeField] private float stepInterval = 0.5f; // thời gian giữa các bước
@@ -118,6 +126,41 @@ namespace Game
             LookUpdate();
             CameraUpdate();
             HandleFootsteps();
+
+            // Debug: Raycast forward from camera
+            if (ShowDebugRay && Camera != null)
+            {
+                Vector3 origin = Camera.transform.position;
+                Vector3 dir = Camera.transform.forward;
+                Debug.DrawRay(origin, dir * RaycastDistance, Color.green);
+
+                RaycastHit hit;
+                bool hitSomething = Physics.Raycast(origin, dir, out hit, RaycastDistance);
+                if (hitSomething)
+                {
+                    if (!lastRaycastHit || lastRaycastHitObject != hit.collider.gameObject)
+                    {
+                        Debug.Log($"Raycast hit: {hit.collider.gameObject.name} at distance {hit.distance}");
+                        lastRaycastHitObject = hit.collider.gameObject;
+                    }
+                }
+                else
+                {
+                    if (lastRaycastHit)
+                    {
+                        Debug.Log("Raycast no longer hitting any object");
+                        lastRaycastHitObject = null;
+                    }
+                }
+                lastRaycastHit = hitSomething;
+            }
+
+            // Debug: log sprint state changes
+            //if (Sprinting != lastSprinting)
+            //{
+            //    Debug.Log($"Sprinting state changed: {lastSprinting} -> {Sprinting}. SprintInput={SprintInput}, MoveInput={MoveInput}, CurrentSpeed={CurrentSpeed}");
+            //    lastSprinting = Sprinting;
+            //}
         }
 
         void LateUpdate()
