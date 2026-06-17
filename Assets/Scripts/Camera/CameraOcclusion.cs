@@ -35,7 +35,7 @@ public class CameraOcclusion : MonoBehaviour
         foreach (RaycastHit hit in hits)
         {
             Renderer r = hit.collider.GetComponent<Renderer>();
-            Debug.Log($"Hit: {hit.collider.name}");
+            //Debug.Log($"Hit: {hit.collider.name}");
             if (r == null)
                 continue;
 
