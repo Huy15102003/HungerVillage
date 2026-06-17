@@ -17,6 +17,8 @@ public class CameraOcclusion : MonoBehaviour
 
     void LateUpdate()
     {
+        if(target == null)
+            return;
         HashSet<Renderer> newHits = new();
 
         Vector3 dir = target.position - transform.position;

@@ -128,32 +128,32 @@ namespace Game
             HandleFootsteps();
 
             // Debug: Raycast forward from camera
-            if (ShowDebugRay && Camera != null)
-            {
-                Vector3 origin = Camera.transform.position;
-                Vector3 dir = Camera.transform.forward;
-                Debug.DrawRay(origin, dir * RaycastDistance, Color.green);
+            //if (ShowDebugRay && Camera != null)
+            //{
+            //    Vector3 origin = Camera.transform.position;
+            //    Vector3 dir = Camera.transform.forward;
+            //    Debug.DrawRay(origin, dir * RaycastDistance, Color.green);
 
-                RaycastHit hit;
-                bool hitSomething = Physics.Raycast(origin, dir, out hit, RaycastDistance);
-                if (hitSomething)
-                {
-                    if (!lastRaycastHit || lastRaycastHitObject != hit.collider.gameObject)
-                    {
-                        Debug.Log($"Raycast hit: {hit.collider.gameObject.name} at distance {hit.distance}");
-                        lastRaycastHitObject = hit.collider.gameObject;
-                    }
-                }
-                else
-                {
-                    if (lastRaycastHit)
-                    {
-                        Debug.Log("Raycast no longer hitting any object");
-                        lastRaycastHitObject = null;
-                    }
-                }
-                lastRaycastHit = hitSomething;
-            }
+            //    RaycastHit hit;
+            //    bool hitSomething = Physics.Raycast(origin, dir, out hit, RaycastDistance);
+            //    if (hitSomething)
+            //    {
+            //        if (!lastRaycastHit || lastRaycastHitObject != hit.collider.gameObject)
+            //        {
+            //            Debug.Log($"Raycast hit: {hit.collider.gameObject.name} at distance {hit.distance}");
+            //            lastRaycastHitObject = hit.collider.gameObject;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (lastRaycastHit)
+            //        {
+            //            Debug.Log("Raycast no longer hitting any object");
+            //            lastRaycastHitObject = null;
+            //        }
+            //    }
+            //    lastRaycastHit = hitSomething;
+            //}
 
             // Debug: log sprint state changes
             //if (Sprinting != lastSprinting)
