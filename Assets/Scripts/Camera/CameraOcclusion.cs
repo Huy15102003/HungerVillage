@@ -5,8 +5,12 @@ public class CameraOcclusion : MonoBehaviour
 {
     public Transform target;
     public LayerMask mapLayer;
-
-    private HashSet<Renderer> currentHits = new();
+    // previous continuous-raycast storage removed in favor of single-shot capture
+    // When requested, we store occlusion targets (the GameObjects hit by a ray between
+    // this camera and the target). These objects will be deactivated while single-shot
+    // occlusion is applied and restored afterwards.
+    private readonly HashSet<GameObject> occlusionTargets = new();
+    private readonly Dictionary<GameObject, bool> originalActiveState = new();
 
     [Header("Debug")]
     [SerializeField] private bool ShowDebugGizmos = true;
@@ -15,46 +19,65 @@ public class CameraOcclusion : MonoBehaviour
     // cache of the last unfiltered hits along the ray (used for gizmo drawing)
     private RaycastHit[] lastAllHits;
 
+    // NOTE: we no longer perform raycasts every frame. Call CaptureOcclusionTargets()
+    // to perform the raycast once (for example when entering turn base), then call
+    // ApplyOcclusion() to hide the captured objects. Call RestoreOcclusion() when done.
     void LateUpdate()
     {
-        if(target == null)
+        // Intentionally empty to avoid continuous raycasts.
+    }
+
+    // Perform a single raycast from this camera to the target and capture hit objects.
+    public void CaptureOcclusionTargets()
+    {
+        occlusionTargets.Clear();
+        originalActiveState.Clear();
+
+        if (target == null)
             return;
-        HashSet<Renderer> newHits = new();
 
         Vector3 dir = target.position - transform.position;
         float dist = dir.magnitude;
 
-        RaycastHit[] hits = Physics.RaycastAll(
-            transform.position,
-            dir.normalized,
-            dist,
-            mapLayer
-        );
-
+        // capture filtered hits (mapLayer)
+        RaycastHit[] hits = Physics.RaycastAll(transform.position, dir.normalized, dist, mapLayer);
         // also store all hits (no layer mask) for debug drawing so we can see if the player blocks the ray
         lastAllHits = Physics.RaycastAll(transform.position, dir.normalized, dist);
 
-        foreach (RaycastHit hit in hits)
+        foreach (var hit in hits)
         {
-            Renderer r = hit.collider.GetComponent<Renderer>();
-            //Debug.Log($"Hit: {hit.collider.name}");
-            if (r == null)
+            var go = hit.collider.gameObject;
+            if (go == null)
                 continue;
 
-            newHits.Add(r);
-
-            SetAlpha(r, 0.2f);
-        }
-
-        foreach (Renderer r in currentHits)
-        {
-            if (!newHits.Contains(r))
+            if (!occlusionTargets.Contains(go))
             {
-                SetAlpha(r, 1f);
+                occlusionTargets.Add(go);
+                originalActiveState[go] = go.activeSelf;
             }
         }
+    }
 
-        currentHits = newHits;
+    // Deactivate captured objects.
+    public void ApplyOcclusion()
+    {
+        foreach (var go in occlusionTargets)
+        {
+            if (go != null)
+                go.SetActive(false);
+        }
+    }
+
+    // Restore original active state of captured objects.
+    public void RestoreOcclusion()
+    {
+        foreach (var kv in originalActiveState)
+        {
+            if (kv.Key != null)
+                kv.Key.SetActive(kv.Value);
+        }
+        occlusionTargets.Clear();
+        originalActiveState.Clear();
     }
 
     void SetAlpha(Renderer r, float alpha)
@@ -66,6 +89,61 @@ public class CameraOcclusion : MonoBehaviour
 
         mat.color = c;
     }
+
+    //// Capture occlusion targets by raycasting once from this camera to the target.
+    //// This will populate occlusionTargets with the hit GameObjects (using hit.collider.gameObject)
+    //// and store their original active state in originalActiveState.
+    //public void CaptureOcclusionTargets()
+    //{
+    //    occlusionTargets.Clear();
+    //    originalActiveState.Clear();
+
+    //    if (target == null) return;
+
+    //    Vector3 dir = target.position - transform.position;
+    //    float dist = dir.magnitude;
+
+    //    // Raycast using the configured mapLayer mask
+    //    RaycastHit[] hits = Physics.RaycastAll(transform.position, dir.normalized, dist, mapLayer);
+
+    //    foreach (var h in hits)
+    //    {
+    //        var go = h.collider.gameObject;
+    //        if (go == null) continue;
+
+    //        if (!occlusionTargets.Contains(go))
+    //        {
+    //            occlusionTargets.Add(go);
+    //            originalActiveState[go] = go.activeSelf;
+    //            Debug.Log($"Captured occlusion target: {go.name}");
+    //        }
+    //    }
+    //}
+
+    //// Hide captured targets. Call after CaptureOcclusionTargets() when entering turnbase.
+    //public void ApplyOcclusion()
+    //{
+    //    foreach (var go in occlusionTargets)
+    //    {
+    //        if (go == null) continue;
+    //        go.SetActive(false);
+    //    }
+    //}
+
+    //// Restore captured targets to their original active state. Call when exiting turnbase.
+    //public void RestoreOcclusion()
+    //{
+    //    foreach (var kv in originalActiveState)
+    //    {
+    //        var go = kv.Key;
+    //        bool wasActive = kv.Value;
+    //        if (go == null) continue;
+    //        go.SetActive(wasActive);
+    //    }
+
+    //    occlusionTargets.Clear();
+    //    originalActiveState.Clear();
+    //}
 
     void OnDrawGizmos()
     {

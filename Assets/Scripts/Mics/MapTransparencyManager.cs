@@ -58,7 +58,7 @@ public class MapTransparencyManager : MonoBehaviour
             foreach (var m in r.sharedMaterials)
             {
                 if (m == null) continue;
-                Debug.Log($"Map material: {m.name} (shader: {m.shader.name})");
+                //Debug.Log($"Map material: {m.name} (shader: {m.shader.name})");
                 sample++;
                 if (sample >= 8) break;
             }
